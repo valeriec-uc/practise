@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+   db:
+     image: mysql:8.0
+     restart: always
+     command: --default-authentication-plugin=mysql_native_password
+     environment:
+       MYSQL_ROOT_PASSWORD: admin123
+       MYSQL_DATABASE: celery
+
+
+  # RabbitMQ
+   rabbit:
+     hostname: rabbit
+     image: rabbitmq:3.8.12-rc.1
+     environment:
+       - RABBITMQ_DEFAULT_USER=admin
+       - RABBITMQ_DEFAULT_PASS=mypass
+     ports:
+       - "5672:5672"  # we forward this port because it's useful for debugging
+       - "15672:15672"  # here, we can access rabbitmq management plugin
+
+  # Django web server
+   web:
+     build:
+       context: .
+       dockerfile: Dockerfile
+     hostname: web
+     volumes:
+       - .:/app  # mount current directory inside container
+     ports:
+       - "8080:8080"
+     # set up links so that web knows about db, rabbit and redis
+     links:
+       - db
+       - rabbit
+     depends_on:
+       - db
+
+#   celery:
+#      image: dockercelery:v0.1
+#      command: "celery worker -A scraping -l INFO"
+#      volumes:
+#        - .:/celery_sample
+#      networks:
+#        - webnet

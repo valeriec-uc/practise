@@ -1,0 +1,6 @@
+From python:3
+ENV PYTHONUNBUFFERED=1
+WORKDIR /celeryproj
+COPY requirements1.txt /celeryproj/
+RUN pip install -r requirements1.txt
+COPY . /celeryproj/
